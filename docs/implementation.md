@@ -2,71 +2,77 @@
 
 **Purpose:**
 
-After finalizing the basic design, I asked ChatGPT to help me break the implementation into smaller tasks. I wanted to understand which classes were needed, what each class should handle, and how booking and cancellation should work.
+After finalising the architecture, I used ChatGPT to break the implementation into smaller tasks and understand the responsibilities of each component.
 
-**Summary of the response:**
+### Summary of the Response
 
-The suggested implementation uses a simple Java 17 and Maven project with separate packages for the model, repository, service, and exceptions.
+The suggested project structure included separate packages for the model, repository, service and custom exceptions.
 
-The main responsibilities are:
+The main responsibilities were:
 
-- **Appointment:** Stores the appointment details, including its ID, provider ID, start time, end time, and status.
-- **AppointmentStatus:** Keeps track of whether an appointment is booked or cancelled.
-- **AppointmentRepository:** Maintains appointments in an in-memory `HashMap` and handles saving, finding, and cancelling appointments.
-- **AppointmentService:** Handles booking and cancellation requests, validates inputs, and communicates with the repository.
-- **Custom exceptions:** Help distinguish between booking conflicts, missing appointments, and duplicate appointment IDs.
+- **Appointment:** Represents appointment details using a Java record.
+- **AppointmentStatus:** Maintains the appointment status (`BOOKED` or `CANCELLED`).
+- **AppointmentRepository:** Stores appointments in an in-memory `HashMap` and handles data operations.
+- **AppointmentService:** Handles booking, cancellation and input validation.
+- **Custom exceptions:** Handle booking conflicts, missing appointments and duplicate IDs.
 
-The response also explained how to prevent overlapping bookings. Before saving a new appointment, the repository checks whether another active appointment exists for the same provider during the requested time. It uses synchronized methods so that checking and saving happen as one operation.
+The response also explained how synchronized repository methods can prevent concurrent requests from booking overlapping slots. Cancelled appointments are retained but excluded from future conflict checks.
 
-For cancellation, the appointment status is changed to `CANCELLED`. This means it will no longer prevent another appointment from being booked in the same time slot.
+### My Review and Decisions
 
-**My review and decisions:**
-
-I found this structure suitable for the assessment because it keeps the implementation small and separates responsibilities clearly.
+I found this approach suitable for the assessment because it keeps the application simple and responsibilities clearly separated.
 
 I decided to:
-- Use Java records to keep the appointment model simple and immutable.
-- Use `Instant` for timestamps so that all appointment times are handled consistently in UTC.
-- Use an in-memory `HashMap` instead of introducing a database.
-- Keep the booking conflict check and save operation together in the repository to avoid concurrent requests booking the same slot.
-- Keep the implementation focused on booking and cancellation rather than adding unnecessary features.
+- Use Java records for an immutable appointment model.
+- Use `Instant` for UTC timestamps.
+- Use an in-memory `HashMap` instead of a database.
+- Keep the availability check and save operation together to prevent race conditions.
+- Avoid adding features that are not part of the assessment.
 
-I also noted a few things to be careful about during implementation:
-- Customer details should only be included if they are actually required by the assessment.
-- Invalid requests should be rejected before changing the stored data.
-- Repeated cancellation and attempts to cancel a non-existent appointment should have clear outcomes.
-- Synchronization protects access within a shared repository instance in a single application process; it does not provide coordination across multiple application instances.
+I also kept input validation, repeated cancellation behaviour and thread-safety limitations in mind while planning the implementation.
 
+### Outcome
 
-**Next step:**
+This planning helped me understand the implementation sequence and what each class was expected to handle before generating the actual code.
 
-Use this plan to implement the model first, followed by the repository and service, and then verify the behaviour through unit and concurrency tests.
----------------------------
-**Prompt 4**
+---
+
+## Prompt 4 – Implementation and Code Review
+
 **Purpose:**
 
-Once the requirements and overall design were clear, I used ChatGPT to generate the complete Java 17 appointment booking application, including the Maven configuration, source code, and unit tests.
+Once the requirements and design were clear, I used ChatGPT to generate the Java 17 application, including the Maven configuration, source code and JUnit 5 test cases.
 
-**Summary of the response:**
+### Summary of the Response
 
-The generated project follows a simple layered structure, with separate classes for the appointment model, repository, service, and custom exceptions.
+The generated project followed the planned architecture and included:
 
-The application uses an in-memory `HashMap` to store appointments and `Instant` to represent appointment timestamps. It supports booking and cancellation while preventing overlapping active appointments for the same provider.
+- An immutable appointment model and status enum.
+- An in-memory `HashMap` repository.
+- A service layer for booking and cancellation.
+- Custom exceptions for different failure scenarios.
+- JUnit 5 tests covering booking, cancellation, validation, overlapping appointments and concurrent booking attempts.
 
-The implementation uses half-open time intervals to identify booking conflicts. It also uses synchronized repository methods to ensure that checking availability and saving an appointment happen atomically.
+The implementation used half-open intervals to detect overlaps and synchronized repository methods to protect shared data.
 
-JUnit 5 test classes were included to cover booking, cancellation, overlapping appointments, invalid inputs, and concurrent booking attempts.
+### My Review and Decisions
 
-**My review:**
+After reviewing the generated code, I noticed that the overlap-checking logic was implemented inside the repository rather than entirely in the service layer.
 
-The generated project follows the planned architecture and avoids unnecessary frameworks or database dependencies. I downloaded the source code, added it to my GitHub repository, and reviewed the main implementation decisions.
+I questioned this design because I initially expected business logic to reside in the service layer.
 
-One point I identified for further review is the use of `customerId` as a mandatory field. I will verify whether this is required by the original assessment before retaining it.
+After discussing it with ChatGPT, I understood the reason behind this approach: the availability check and save operation need to happen atomically. If they are separate operations, two threads could simultaneously find a slot available and both book it.
 
-The generated tests were not executed in the generation environment because Maven was unavailable. I will run the build and test commands locally and record the actual results.
+Keeping these operations inside the same synchronized repository method ensures that one thread completes the check and save before another thread can proceed.
 
-**Next step:**
+I reviewed this trade-off and decided to retain the approach because it provides the required thread safety without introducing additional complexity.
 
-Review the generated source code, verify that it meets all assessment requirements, execute the tests, and fix any issues identified.
+I also reviewed the use of `customerId` as a mandatory field and identified it for verification against the original requirements.
 
-I checked and reviewed the code, I could see some business logic in repository layer. I expressed GPT, it said it was implemented in such a way to ensure atomicity of the code. Even though multiple threads come simultaneously to avoid parallel booking for same slot.
+The generated tests were not executed during code generation because Maven was unavailable in that environment. I planned to run the build and tests locally rather than assume they had passed.
+
+### Outcome and Next Steps
+
+I downloaded the generated project, reviewed the implementation and added the source code to my GitHub repository.
+
+My next steps are to verify the implementation against the original requirements, execute the Maven build and test suite, and address any issues identified during testing.
