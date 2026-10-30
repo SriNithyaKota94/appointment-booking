@@ -68,3 +68,5 @@ The generated tests were not executed in the generation environment because Mave
 **Next step:**
 
 Review the generated source code, verify that it meets all assessment requirements, execute the tests, and fix any issues identified.
+
+I checked and reviewed the code, I could see some business logic in repository layer. I expressed GPT, it said it was implemented in such a way to ensure atomicity of the code. Even though multiple threads come simultaneously to avoid parallel booking for same slot.
