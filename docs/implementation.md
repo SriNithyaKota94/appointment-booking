@@ -41,3 +41,30 @@ I also noted a few things to be careful about during implementation:
 **Next step:**
 
 Use this plan to implement the model first, followed by the repository and service, and then verify the behaviour through unit and concurrency tests.
+---------------------------
+**Prompt 4**
+**Purpose:**
+
+Once the requirements and overall design were clear, I used ChatGPT to generate the complete Java 17 appointment booking application, including the Maven configuration, source code, and unit tests.
+
+**Summary of the response:**
+
+The generated project follows a simple layered structure, with separate classes for the appointment model, repository, service, and custom exceptions.
+
+The application uses an in-memory `HashMap` to store appointments and `Instant` to represent appointment timestamps. It supports booking and cancellation while preventing overlapping active appointments for the same provider.
+
+The implementation uses half-open time intervals to identify booking conflicts. It also uses synchronized repository methods to ensure that checking availability and saving an appointment happen atomically.
+
+JUnit 5 test classes were included to cover booking, cancellation, overlapping appointments, invalid inputs, and concurrent booking attempts.
+
+**My review:**
+
+The generated project follows the planned architecture and avoids unnecessary frameworks or database dependencies. I downloaded the source code, added it to my GitHub repository, and reviewed the main implementation decisions.
+
+One point I identified for further review is the use of `customerId` as a mandatory field. I will verify whether this is required by the original assessment before retaining it.
+
+The generated tests were not executed in the generation environment because Maven was unavailable. I will run the build and test commands locally and record the actual results.
+
+**Next step:**
+
+Review the generated source code, verify that it meets all assessment requirements, execute the tests, and fix any issues identified.
